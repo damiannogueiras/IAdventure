@@ -1,8 +1,8 @@
-import config from '../config';
+import { secrets } from '../config/secrets';
 import { logger } from '../lib/logger';
 
 export class AIService {
-  constructor(private apiKey = config.openaiApiKey) {}
+  constructor(private apiKey = secrets.openaiApiKey) {}
 
   async generateCompletion(prompt: string) {
     logger.info('[ai] generateCompletion prompt len:', prompt.length);
@@ -18,4 +18,3 @@ export class AIService {
 }
 
 export default new AIService();
-

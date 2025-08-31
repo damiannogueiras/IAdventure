@@ -8,11 +8,20 @@ import {
   EmbedBuilder,
   Interaction
 } from 'discord.js';
-import config from '../../config';
 import { logger } from '../../lib/logger';
+import { secrets } from '../../config/secrets';
+import { createMsgEmbed } from '../../view/discord';
+
+/**
+ * Inicializa el cliente de Discord
+ * - Maneja comandos slash básicos
+ * - Responde a mensajes específicos (ping, debug on/off)
+ * - Usa intents y partials necesarios
+ * - Loguea eventos importantes
+ */
 
 export async function initDiscord() {
-  if (!config.botToken) {
+  if (!secrets.botToken) {
     logger.warn('[discord] No hay BOT_TOKEN en la configuración, omitiendo conexión.');
     return null;
   }
@@ -27,7 +36,7 @@ export async function initDiscord() {
   });
 
   // Cambiado a 'ready' y log de guilds
-  client.once('ready', () => {
+  client.once('clientReady', () => {
     logger.info('[discord] Conectado como', client.user?.tag);
     const guilds = client.guilds.cache.map(g => `${g.name} (${g.id})`).join(', ');
     logger.info(`[discord] Miembro de los servidores: ${guilds}`);
@@ -61,15 +70,30 @@ export async function initDiscord() {
   client.on(Events.MessageCreate, async (message) => {
     try {
       if (message.author.bot) return; // Ignorar bots
+      // si recibo un mensage debug, cambio el nivel de log
+      if (message.content.toLowerCase() === 'debug on') {
+        logger.info('[discord] Activando logs debug por mensaje');
+        process.env.DEBUG = 'true';
+        return await message.reply('Debug activado');
+      }
+      if (message.content.toLowerCase() === 'debug off') {
+        logger.info('[discord] Desactivando logs debug por mensaje');
+        process.env.DEBUG = 'false';
+        return await message.reply('Debug desactivado');
+      }
+
       if (message.content.toLowerCase() === 'ping') {
-        await message.reply('Pong!');
+        logger.debug('[discord] msg recibido ' + message.content);
+        // ejemplo de embed utilizando view/discord.ts
+        const embed = createMsgEmbed('Pong!', 'Respuesta al comando ping', 0x00ff00);
+        await message.reply({ embeds: [embed] });
       }
     } catch (err) {
       logger.error('[discord] error manejo messageCreate', err);
     }
   })
 
-  await client.login(config.botToken).then(r => logger.info("[discord] Logged into Discord")).catch(e => console.log(e));
+  await client.login(secrets.botToken).then(r => logger.info("[discord] Logged into Discord")).catch(e => console.log(e));
 
   return client;
 }
