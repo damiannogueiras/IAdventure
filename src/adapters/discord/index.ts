@@ -1,10 +1,19 @@
-import { Client, GatewayIntentBits, Partials, Interaction } from 'discord.js';
+import {
+  Client,
+  Collection,
+  GatewayIntentBits,
+  Events,
+  MessageFlags,
+  Partials,
+  EmbedBuilder,
+  Interaction
+} from 'discord.js';
 import config from '../../config';
 import { logger } from '../../lib/logger';
 
 export async function initDiscord() {
-  if (!config.discordToken) {
-    logger.warn('[discord] No hay DISCORD_TOKEN en la configuración, omitiendo conexión.');
+  if (!config.botToken) {
+    logger.warn('[discord] No hay BOT_TOKEN en la configuración, omitiendo conexión.');
     return null;
   }
 
@@ -14,13 +23,19 @@ export async function initDiscord() {
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
     ],
-    partials: [Partials.Channel],
+    partials: [Partials.Message, Partials.Channel],
   });
 
+  // Cambiado a 'ready' y log de guilds
   client.once('ready', () => {
     logger.info('[discord] Conectado como', client.user?.tag);
+    const guilds = client.guilds.cache.map(g => `${g.name} (${g.id})`).join(', ');
+    logger.info(`[discord] Miembro de los servidores: ${guilds}`);
   });
 
+  /**
+   * Interaccion con comandos slash
+   */
   client.on('interactionCreate', async (interaction: Interaction) => {
     try {
       // Manejo mínimo: solo comandos tipo ChatInput
@@ -40,6 +55,21 @@ export async function initDiscord() {
     }
   });
 
-  await client.login(config.discordToken);
+  /**
+   * Interaccion con mensajes
+   */
+  client.on(Events.MessageCreate, async (message) => {
+    try {
+      if (message.author.bot) return; // Ignorar bots
+      if (message.content.toLowerCase() === 'ping') {
+        await message.reply('Pong!');
+      }
+    } catch (err) {
+      logger.error('[discord] error manejo messageCreate', err);
+    }
+  })
+
+  await client.login(config.botToken).then(r => logger.info("[discord] Logged into Discord")).catch(e => console.log(e));
+
   return client;
 }

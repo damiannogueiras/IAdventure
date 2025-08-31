@@ -6,7 +6,7 @@ dotenv.config();
 const config = {
   env: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT || 3000),
-  discordToken: process.env.DISCORD_TOKEN || '',
+  botToken: process.env.BOT_TOKEN || '',
   openaiApiKey: process.env.OPENAI_API_KEY || '',
 };
 

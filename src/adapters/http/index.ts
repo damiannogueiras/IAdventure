@@ -1,6 +1,8 @@
 // Adapter HTTP (stub)
+import {logger} from "../../lib/logger";
+
 export async function initHttp() {
-  console.info('[http] init (stub)');
+  logger.info('[http] init (stub)');
   return Promise.resolve();
 }
 

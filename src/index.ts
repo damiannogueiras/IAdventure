@@ -5,6 +5,7 @@ import { initHttp } from './adapters/http';
 import { initDiscord } from './adapters/discord';
 
 async function main() {
+
   logger.info('Arrancando IAdventure (dev) — entorno: ' + config.env);
   await initHttp();
   await initDiscord();
