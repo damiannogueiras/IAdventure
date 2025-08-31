@@ -1,0 +1,27 @@
+{
+  "name": "iadventure",
+  "version": "0.1.0",
+  "description": "Bot de Discord con IA - esqueleto IAdventure (JS con allowJs+checkJs + JSDoc)",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .js"
+  },
+  "keywords": ["discord","bot","ia","ragu"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.1",
+    "openai": "^4.9.0",
+    "@pinecone-database/pinecone": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "eslint": "^8.48.0"
+  }
+}
+
