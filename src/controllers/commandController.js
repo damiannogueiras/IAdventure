@@ -1,7 +1,7 @@
 /**
  * Controlador de comandos/mensajes para IAdventure
  * - Extrae la intención básica y llama al servicio IA
- */
+ *
 const { generateAnswer } = require('../services/aiService');
 const config = require('../config');
 
@@ -9,7 +9,7 @@ const config = require('../config');
  * Maneja mensajes entrantes simples
  * @param {import('discord.js').Client} client
  * @param {import('discord.js').Message} message
- */
+
 async function handleMessage(client, message) {
   // prefijo simple para comandos por ahora
   const content = message.content.trim();
@@ -31,3 +31,4 @@ async function handleMessage(client, message) {
 
 module.exports = { handleMessage };
 
+*/
