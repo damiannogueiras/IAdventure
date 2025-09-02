@@ -11,6 +11,7 @@ import {
 import { logger } from '../../lib/logger';
 import { secrets } from '../../config/secrets';
 import { createMsgEmbed } from '../../view/discord';
+import {consultaIAgenerica} from "../../controllers/consultaController";
 
 /**
  * Inicializa el cliente de Discord
@@ -86,14 +87,20 @@ export async function initDiscord() {
         logger.debug('[discord] msg recibido ' + message.content);
         // ejemplo de embed utilizando view/discord.ts
         const embed = createMsgEmbed('Pong!', 'Respuesta al comando ping', 0x00ff00);
-        await message.reply({ embeds: [embed] });
+        return await message.reply({ embeds: [embed] });
       }
+
+      // si no es ninguno de los anteriores, contesta la IA
+      const respuestaIA = await consultaIAgenerica(message.content);
+      const embed = createMsgEmbed(message.content, respuestaIA, 0x0000ff);
+      return await message.reply({ embeds: [embed] });
     } catch (err) {
-      logger.error('[discord] error manejo messageCreate', err);
+      logger.error('[discord] error manejo evento messageCreate', err);
     }
   })
 
-  await client.login(secrets.botToken).then(r => logger.info("[discord] Logged into Discord")).catch(e => console.log(e));
-
+  await client.login(secrets.botToken)
+      .then(r => logger.info("[discord] Logged into Discord"))
+      .catch(e => console.log(e));
   return client;
 }

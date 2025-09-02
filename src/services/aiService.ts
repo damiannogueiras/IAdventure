@@ -1,20 +1,37 @@
 import { secrets } from '../config/secrets';
 import { logger } from '../lib/logger';
+import Groq from "groq-sdk";
 
 export class AIService {
-  constructor(private apiKey = secrets.openaiApiKey) {}
+  private groq: Groq;
 
-  async generateCompletion(prompt: string) {
-    logger.info('[ai] generateCompletion prompt len:', prompt.length);
-    // Stub: en producción llamarías al proveedor LLM
-    return `Respuesta simulada para: ${prompt.slice(0, 120)}`;
+  constructor() {
+    if (!secrets.apiKeyGroq) {
+      logger.error('[AIService] No API key for Groq found in configuration.');
+      throw new Error('Missing Groq API key');
+    }
+    this.groq = new Groq({ apiKey: secrets.apiKeyGroq});
+    logger.info('[AIService] Groq client initialized.');
   }
 
-  async embeddings(text: string) {
-    logger.info('[ai] embeddings for text len:', text.length);
-    // Stub: devolver vector dummy
-    return Array(8).fill(0).map(() => Math.random());
+  /**
+   * Consulta genérica pasándole todos los parámetros
+   */
+  public async consultaIAgenerica(
+    query: string,
+    system: string,
+    tokens_max: number = 200,
+    temperatura: number = 0.2
+  ) {
+    const chat_history = [];
+    chat_history.push({ role: "user", content: query });
+    chat_history.push({ role: "system", content: system });
+
+    return this.groq.chat.completions.create({
+      messages: chat_history,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: tokens_max,
+      temperature: temperatura
+    });
   }
 }
-
-export default new AIService();
