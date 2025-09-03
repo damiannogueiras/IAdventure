@@ -5,6 +5,7 @@
 - Principios
 - Arquitectura recomendada (capas)
 - Estructura de carpetas sugerida
+- Diagrama de secuencias básico
 - Diseño IA (prácticas)
 - Discord: mejores prácticas
 - Persistencia & rendimiento
@@ -37,44 +38,120 @@
 - Providers / Adapters: LLM provider (OpenAI/Anthropic), Embeddings provider, Vector DB adapter (Pinecone, Weaviate, Milvus).
 - Utils / common: validadores, plantillas de prompt, middlewares.
 
-## Estructura de carpetas sugerida
+## Estructura de carpetas actual y recomendada
+
+Estructura actual del proyecto:
 
 ```
 src/
-  adapters/
-    discord/
-      index.ts        # conector a discord.js
-    http/
-    llm/
+  adapters/         # Adaptadores de entrada/salida (Discord, HTTP, LLM, etc.)
+    discord/        # Conector y lógica específica para Discord
+      index.ts
+    http/           # Adaptador para endpoints HTTP (webhooks, healthchecks)
+      index.ts
+  config/           # Configuración global y secretos (variables de entorno, settings)
+    global.ts
+    secrets.ts
+  controllers/      # Controladores: orquestan la lógica de cada caso de uso
+    consultaController.ts
+  json/             # Ficheros de datos estáticos o mocks (ejemplo: gameState.json)
+    gameState.json
+  lib/              # Librerías utilitarias y helpers (logger, conexión DB, etc.)
+    logger.ts
+    mongoClient.ts
+  models/           # Definición de modelos y tipos de datos (interfaces, esquemas)
+    gameState.ts
+  scripts/          # Scripts utilitarios para pruebas, migraciones, etc.
+    testDb.ts
+    testGameStateService.ts
+  services/         # Lógica de negocio y servicios de aplicación (IA, sesiones, juego)
+    aiService.ts
+    gameStateService.ts
+    sessionService.ts
+  view/             # Presentación y formateo de respuestas (Discord, web, etc.)
+    discord.ts
+  index.ts          # Entry point principal de la app
+```
+
+Estructura recomendada (objetivo a futuro):
+
+```
+src/
+  adapters/         # Adaptadores de entrada/salida (Discord, HTTP, LLM, VectorDB, etc.)
+    discord/        # Conector y lógica específica para Discord
+      index.ts
+    http/           # Adaptador para endpoints HTTP
+      index.ts
+    llm/            # Adaptadores para proveedores de LLM (OpenAI, Anthropic...)
       openaiAdapter.ts
       providerFactory.ts
-    vector/
+    vector/         # Adaptadores para Vector DB (Pinecone, Weaviate...)
       pineconeAdapter.ts
-  controllers/
+  controllers/      # Controladores de casos de uso
     consultaController.ts
     dmController.ts
-  services/
+  services/         # Lógica de negocio y servicios de aplicación
     aiService.ts      # RAG, prompts, streaming
     sessionService.ts # historial, tokens
     commandService.ts
-  repositories/
-    simpleRepo.ts
-    sinergiaRepo.ts
+    gameStateService.ts
+  repositories/     # Abstracción de acceso a datos (DB, cache, etc.)
     userRepo.ts
-  models/             # Mongoose / Prisma
-  jobs/               # queues, workers
-  config/
+    gameStateRepo.ts
+  models/           # Definición de modelos y tipos de datos
+    gameState.ts
+    user.ts
+  jobs/             # Workers, colas y tareas en background
+    # queues, workers para embeddings, reindex, etc.
+  config/           # Configuración global y secretos
     index.ts
-  lib/
+    global.ts
+    secrets.ts
+  lib/              # Librerías utilitarias y helpers
     logger.ts
     errorHandler.ts
-  commands/           # definiciones de comandos
-  types/
-  tests/
-  index.ts
+    mongoClient.ts
+  commands/         # Definiciones y lógica de comandos de Discord
+    # definiciones de comandos de Discord
+  types/            # Tipos globales reutilizables
+    # tipos globales reutilizables
+  tests/            # Tests unitarios e integración
+    # tests unitarios e integración
+  view/             # Presentación y formateo de respuestas
+    discord.ts
+  index.ts          # Entry point principal
 ```
 
-> Nota: adaptar nombres y extensiones (.js/.ts) según migración a TypeScript.
+> Nota: Las carpetas y archivos marcados pueden ir creándose según se avance en el roadmap y se añadan nuevas funcionalidades (ej. workers, nuevos adaptadores, tests, etc.).
+
+---
+
+## Diagrama de secuencias básico
+
+
+```mermaid
+sequenceDiagram
+    participant Usuario
+    participant DiscordAdapter as Discord Adapter
+    participant ConsultaController as ConsultaController
+    participant AIService as AIService
+    participant Discord as Discord
+
+    Usuario->>DiscordAdapter: Escribe mensaje en canal Discord
+    DiscordAdapter->>DiscordAdapter: Filtra (ping, debug, etc.)
+    alt Es mensaje para IA
+        DiscordAdapter->>ConsultaController: consultaIAgenerica(mensaje)
+        ConsultaController->>AIService: consultaIAhistorico(mensaje, historial, ...)
+        AIService->>AIService: Prepara prompt, consulta LLM
+        AIService-->>ConsultaController: Respuesta IA
+        ConsultaController-->>DiscordAdapter: Respuesta formateada
+        DiscordAdapter->>Discord: Envía respuesta (embed)
+        Discord-->>Usuario: Muestra respuesta en canal
+    else Es comando especial
+        DiscordAdapter->>Discord: Responde comando (ej. ping, debug)
+        Discord-->>Usuario: Muestra respuesta
+    end
+```
 
 ## Diseño IA (prácticas)
 
@@ -123,17 +200,6 @@ src/
 - Documentación de prompts y decisiones de diseño.
 - Suites de tests: unitarios (services/repos), integración (discord adapter stubs).
 
-## Roadmap incremental (priorizado)
-
-1. Migrar a TypeScript (opcional pero recomendado) y añadir lint/format.
-2. Extraer adaptador Discord: desacoplar `index.js` en adapter + router.
-3. Implementar capa de Services para IA con abstracción de provider.
-4. Añadir cache Redis y manejo de sessions básico.
-5. Integrar Vector DB con un pipeline de embeddings y búsqueda RAG.
-6. Mover jobs pesados a workers (BullMQ).
-7. Añadir observabilidad (logger + Sentry) y tests.
-8. Revisar despliegue (Docker + GH Actions) y monitoreo.
-
 ## Tecnologías / Librerías sugeridas
 
 - Node.js + TypeScript, discord.js v14+
@@ -144,13 +210,3 @@ src/
 - pino / winston, Sentry
 - jest, msw/nock para tests
 - awilix / inversify para DI (opcional)
-
-## Qué puedo hacer por ti
-
-- a) Un esqueleto de proyecto con la estructura propuesta (archivos iniciales en TS).
-- b) Una propuesta de refactor paso a paso aplicable a tu repo actual (patches).
-- c) Un ejemplo de `aiService` con RAG y adaptador a OpenAI.
-
----
-
-Si quieres que aplique alguna de las opciones (a / b / c) directamente al repo, dime cuál y me pongo a ello.

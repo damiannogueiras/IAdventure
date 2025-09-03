@@ -23,7 +23,7 @@
     "discord.js": "^14.21.0",
     "dotenv": "^17.2.1",
     "groq-sdk": "^0.30.0",
-    "openai": "^4.9.0"
+    "mongodb": "^6.19.0"
   },
   "devDependencies": {
     "eslint": "^8.48.0",

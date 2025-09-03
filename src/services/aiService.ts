@@ -27,6 +27,8 @@ export class AIService {
     chat_history.push({ role: "user", content: query });
     chat_history.push({ role: "system", content: system });
 
+    logger.debug('[AIService] Consulta a Groq: ' + JSON.stringify(chat_history));
+
     return this.groq.chat.completions.create({
       messages: chat_history,
       model: "llama-3.3-70b-versatile",
