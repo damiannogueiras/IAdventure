@@ -8,7 +8,9 @@
     "start": "node src/index.js",
     "dev": "node src/index.js",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .js"
+    "lint": "eslint . --ext .js",
+    "test:consultas": "ts-node src/scripts/testConsultas.ts",
+    "test:gamestate": "ts-node src/scripts/testGameStateService.ts"
   },
   "keywords": [
     "discord",
@@ -27,6 +29,8 @@
   },
   "devDependencies": {
     "eslint": "^8.48.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "ts-node": "^10.9.1",
+    "@types/node": "^20.8.0"
   }
 }
